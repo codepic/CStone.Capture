@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <None Update="Signature.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Location.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,12 +13,16 @@ Whichever you choose, point you `TESSDATA_PREFIX` environment variable to the fu
 
 First off, clone this repo (with submodules).
 
-```
+```pwsh
+# check that it works
+dotnet test
+
+# run the app
 cd src
 dotnet watch
 ```
 
-Lauch the game, warp to a location.
+Lauch the game, warp to a location, and start scanning.
 
 ## Key Bindings
 

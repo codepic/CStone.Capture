@@ -4,7 +4,7 @@ using SCCapture;
 
 namespace Cstone.Capture.Tests;
 
-public class CaptureUtilsTests {
+public class LocationTests {
     private readonly Mock<IImageUtils> _mockImageUtils;
     private static CaptureProfile _locationProfile = new CaptureProfile
     {
@@ -14,7 +14,8 @@ public class CaptureUtilsTests {
         Y = 80,
         MinSamples = 10,
         MinConfidence = 0.7f,
-        ShipModel = ShipModel.Vulture
+        ShipModel = ShipModel.Vulture,
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
     };
     private static CaptureProfile _signatureProfile = new CaptureProfile
     {
@@ -28,35 +29,36 @@ public class CaptureUtilsTests {
         Y = 490,
         MinSamples = 10,
         MinConfidence = 0.7f,        
-        ShipModel = ShipModel.Vulture
+        ShipModel = ShipModel.Vulture,
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
     };
 
-    public CaptureUtilsTests()
+    public LocationTests()
     {
         _mockImageUtils = new Mock<IImageUtils>();
-        var original = Bitmap.FromFile("Signature.png");
-        var image = new ImageUtils().ProcessImage(original, _signatureProfile);
-        _mockImageUtils.Setup(svc => svc.GetScreenshot(_signatureProfile)).Returns(original);
-        _mockImageUtils.Setup(svc => svc.ProcessImage(original, _signatureProfile)).Returns(image);
+        var original = Bitmap.FromFile("Location.png");
+        var image = new ImageUtils().ProcessImage(original, _locationProfile);
+        _mockImageUtils.Setup(svc => svc.GetScreenshot(_locationProfile)).Returns(original);
+        _mockImageUtils.Setup(svc => svc.ProcessImage(original, _locationProfile)).Returns(image);
     }
 
     [Fact]
-    public void Signature() {
+    public void Should_Get_Location() {
         // Arrange
         var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
-        sut.Scanning();
+        sut.Location();
 
         // Act
         for (int i = 0; i < 5; i++)
         {
-            sut.CaptureSignature();
+            sut.CaptureLocation();
         }
-        var actual = sut.GetSignature();
+        var actual = sut.GetLocation();
 
         // Assert
         Assert.Equal(0.5f, actual.Confidence);
-        Assert.Equal("1720", actual.Label);
+        Assert.Equal("Stanton", actual.Label);
         Assert.Equal(5, actual.Count);
-        Assert.Equal(5160, actual.Value);
+        Assert.Equal(20475038, actual.Value);
     }
 }

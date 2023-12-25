@@ -1,0 +1,3 @@
+ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5820 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-punc-dawg)
+ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5C10 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-word-dawg)
+ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5CF0 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-number-dawg)

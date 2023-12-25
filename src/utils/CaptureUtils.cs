@@ -22,7 +22,10 @@ public class CaptureUtils
     #region Capture Mode
     public void StandBy()
     {
-        Mode = CaptureMode.StandBy;
+        if (Mode != CaptureMode.StandBy) {
+            Mode = CaptureMode.StandBy;
+            Console.WriteLine($"{Mode}");
+        }
     }
     public void Location()
     {
@@ -34,6 +37,7 @@ public class CaptureUtils
         {
             _location = new List<Tuple<string, int>>();
             Mode = CaptureMode.Location;
+            Console.WriteLine($"{Mode}");
         }
     }
     public void Quantum()
@@ -43,6 +47,7 @@ public class CaptureUtils
             _location = new List<Tuple<string, int>>();
             _signature = new List<Tuple<string, int>>();
             Mode = CaptureMode.Quantum;
+            Console.WriteLine($"{Mode}");
         }
     }
     public void Scanning()
@@ -59,7 +64,6 @@ public class CaptureUtils
     #region Capture Methods
     public bool CaptureSignature()
     {
-        // Console.WriteLine($"CaptureSignature {mode}");
         if (Mode == CaptureMode.Scanning)
         {
             // Get image and process it
@@ -76,17 +80,8 @@ public class CaptureUtils
     }
     public bool CaptureLocation()
     {
-        _location = new List<Tuple<string, int>>();
-        var width = _locationProfile.Width;
-        var height = _locationProfile.Height;
-        var x = _locationProfile.X; // Mole 2450
-        var y = _locationProfile.Y; // Mole 80
-
-        var captureBitmap = new Bitmap(width, height);
-        var graphics = Graphics.FromImage(captureBitmap);
-        var upperLeftSource = new Point(x, y);
-        var upperLeftDestination = new Point(0, 0);
-        graphics.CopyFromScreen(upperLeftSource, upperLeftDestination, captureBitmap.Size);
+        var captureBitmap = _imageUtils.GetScreenshot(_locationProfile);
+        
         MemoryStream stream = new MemoryStream();
         captureBitmap.Save(stream, ImageFormat.Png);
 
@@ -134,6 +129,15 @@ public class CaptureUtils
     #region Ocr Methods
     private Tuple<string, int>? GetDistance(MemoryStream stream)
     {
+        // try
+        // {
+        //     Image.FromStream(stream).Save("Location.png", ImageFormat.Png);
+        // }
+        // catch (Exception pokemon)
+        // {
+        //     // Gotta catch'em all!
+        // }
+
         // Setup OCR engine
         using var engine = new Tesseract.TesseractEngine(_locationProfile.TessData, "eng", Tesseract.EngineMode.Default);
         engine.DefaultPageSegMode = Tesseract.PageSegMode.SingleLine;
@@ -203,8 +207,6 @@ public class CaptureUtils
         var dist = GetLocation();
         var sig = GetSignature();
         var archetype = GetArcheType();
-
-        Console.WriteLine(sig.Confidence);
 
         if (sig.Confidence > _signatureProfile.MinConfidence)
         {
