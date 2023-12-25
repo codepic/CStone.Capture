@@ -1,4 +1,4 @@
-# CStone.Capture
+# CStone.Capture (WIP)
 
 ## Tesseract OCR Training Data
 
