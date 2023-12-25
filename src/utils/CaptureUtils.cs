@@ -132,10 +132,10 @@ public class CaptureUtils
     #endregion
 
     #region Ocr Methods
-    private static Tuple<string, int>? GetDistance(MemoryStream stream)
+    private Tuple<string, int>? GetDistance(MemoryStream stream)
     {
         // Setup OCR engine
-        using var engine = new Tesseract.TesseractEngine("C:/Users/JaniHyytiäinen/src/SCCapture/tessdata", "eng", Tesseract.EngineMode.Default);
+        using var engine = new Tesseract.TesseractEngine(_locationProfile.TessData, "eng", Tesseract.EngineMode.Default);
         engine.DefaultPageSegMode = Tesseract.PageSegMode.SingleLine;
         engine.SetVariable("debug_file", "log.txt");
 
@@ -171,7 +171,7 @@ public class CaptureUtils
         //     // Gotta catch'em all!
         // }
 
-        using (var engine = new Tesseract.TesseractEngine("C:/Users/JaniHyytiäinen/src/SCCapture/src/tessdata", "eng", Tesseract.EngineMode.Default))
+        using (var engine = new Tesseract.TesseractEngine(_signatureProfile.TessData, "eng", Tesseract.EngineMode.Default))
         {
             engine.DefaultPageSegMode = Tesseract.PageSegMode.SingleBlock;
             engine.SetVariable("debug_file", "log.txt");

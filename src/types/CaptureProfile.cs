@@ -8,6 +8,7 @@ public struct CaptureProfile {
     public int MinSamples { get; set; }
     public float MinConfidence { get; set; }
     public ShipModel ShipModel { get; set; }
+    public string TessData { get; set; }
 }
 
 public enum ShipModel {

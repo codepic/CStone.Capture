@@ -35,7 +35,8 @@ class Program
         Y = 80,
         MinSamples = 5,
         MinConfidence = 0.7f,
-        ShipModel = ShipModel.Vulture
+        ShipModel = ShipModel.Vulture,
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
     };
     private static CaptureProfile _signatureProfile = new CaptureProfile
     {
@@ -49,7 +50,8 @@ class Program
         Y = 490,
         MinSamples = 5,
         MinConfidence = 0.7f,        
-        ShipModel = ShipModel.Vulture
+        ShipModel = ShipModel.Vulture,
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
     };
     private static CaptureUtils _capture = new CaptureUtils(_locationProfile, _signatureProfile, new ImageUtils());
 
