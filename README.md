@@ -1,5 +1,14 @@
 # CStone.Capture (WIP)
 
+## Usage
+
+```pwsh
+dotnet watch {server} {origin} {destination}
+
+# Example
+dotnet watch 'EU' 'ARC L1' 'CRU L5'
+```
+
 ## Tesseract OCR Training Data
 
 You have basically 2 options:

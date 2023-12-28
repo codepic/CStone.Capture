@@ -60,5 +60,25 @@ public class LocationTests {
         Assert.Equal("Stanton", actual.Label);
         Assert.Equal(5, actual.Count);
         Assert.Equal(20475038, actual.Value);
+
+        Assert.Equal(CaptureMode.Location, sut.Mode);
+    }
+
+    [Fact]
+    public void Should_Return_To_StandBy() {
+        // Arrange
+        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
+        sut.Location();
+
+        // Act
+        for (int i = 0; i < 10; i++)
+        {
+            sut.CaptureLocation();
+        }
+        var actual = sut.GetLocation();
+
+        // Assert
+        Assert.Equal(1, actual.Confidence);
+        Assert.Equal(CaptureMode.StandBy, sut.Mode);
     }
 }

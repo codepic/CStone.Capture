@@ -1,3 +1,5 @@
-ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5820 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-punc-dawg)
-ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5C10 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-word-dawg)
-ObjectCache(00007FFE01898480)::~ObjectCache(): WARNING! LEAK! object 00000183006F5CF0 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-number-dawg)
+Image too small to scale!! (2x36 vs min width of 3)
+Line cannot be recognized!!
+ObjectCache(00007FF9F0D58480)::~ObjectCache(): WARNING! LEAK! object 00000250E334F880 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-punc-dawg)
+ObjectCache(00007FF9F0D58480)::~ObjectCache(): WARNING! LEAK! object 00000250E334F490 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-word-dawg)
+ObjectCache(00007FF9F0D58480)::~ObjectCache(): WARNING! LEAK! object 00000250E334EEE0 still has count 1 (id C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata/eng.traineddatalstm-number-dawg)

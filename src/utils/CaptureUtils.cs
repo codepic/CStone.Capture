@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Drawing.Imaging;
+using Newtonsoft.Json;
 
 namespace SCCapture;
 public class CaptureUtils
@@ -8,6 +9,9 @@ public class CaptureUtils
     private readonly CaptureProfile _signatureProfile;
     private IList<Tuple<string, int>> _location = new List<Tuple<string, int>>();
     private IList<Tuple<string, int>> _signature = new List<Tuple<string, int>>();
+    private string _server;
+    private string _origin;
+    private string _destination;
     private readonly IImageUtils _imageUtils;
 
     public CaptureMode Mode { get; private set; }
@@ -22,7 +26,8 @@ public class CaptureUtils
     #region Capture Mode
     public void StandBy()
     {
-        if (Mode != CaptureMode.StandBy) {
+        if (Mode != CaptureMode.StandBy)
+        {
             Mode = CaptureMode.StandBy;
             Console.WriteLine($"{Mode}");
         }
@@ -76,28 +81,44 @@ public class CaptureUtils
             GetSignature(stream);
         }
 
+        // Set Mode to StandBy if required confidence level is reached
+        // Mode = (GetSignature().Confidence >= _signatureProfile.MinConfidence)
+        //     ? CaptureMode.StandBy
+        //     : CaptureMode.Scanning;
+
+        // Signal caller whether to keep calling or not
         return Mode == CaptureMode.Scanning;
     }
     public bool CaptureLocation()
     {
-        var captureBitmap = _imageUtils.GetScreenshot(_locationProfile);
-        
-        MemoryStream stream = new MemoryStream();
-        captureBitmap.Save(stream, ImageFormat.Png);
-
-
-        var dist = GetDistance(stream);
-        if (dist == null)
+        var location = GetLocation();
+        if (location.Confidence <= _locationProfile.MinConfidence)
         {
-            Thread.Sleep(1000);
-            return true;
+            var captureBitmap = _imageUtils.GetScreenshot(_locationProfile);
+
+            MemoryStream stream = new MemoryStream();
+            captureBitmap.Save(stream, ImageFormat.Png);
+
+
+            var dist = GetDistance(stream);
+            if (dist == null)
+            {
+                Thread.Sleep(1000);
+                return true;
+            }
+            else
+            {
+                _location.Add(dist);
+            }
         }
         else
         {
-            _location.Add(dist);
+            Mode = CaptureMode.StandBy;
+            Console.WriteLine($"LOC: {location.Label} / DIST: {location.Value}");
         }
 
-        return GetLocation().Confidence > _locationProfile.MinConfidence;
+        // Signal caller whether to keep calling or not
+        return Mode == CaptureMode.Location;
     }
     #endregion
 
@@ -129,14 +150,14 @@ public class CaptureUtils
     #region Ocr Methods
     private Tuple<string, int>? GetDistance(MemoryStream stream)
     {
-        // try
-        // {
-        //     Image.FromStream(stream).Save("Location.png", ImageFormat.Png);
-        // }
-        // catch (Exception pokemon)
-        // {
-        //     // Gotta catch'em all!
-        // }
+        try
+        {
+            Image.FromStream(stream).Save("Location.png", ImageFormat.Png);
+        }
+        catch (Exception pokemon)
+        {
+            // Gotta catch'em all!
+        }
 
         // Setup OCR engine
         using var engine = new Tesseract.TesseractEngine(_locationProfile.TessData, "eng", Tesseract.EngineMode.Default);
@@ -149,31 +170,26 @@ public class CaptureUtils
 
         // Analyze results
         var text = page.GetText();
-        var parts = text.Split(' ');
-        if (parts.Length == 2)
+        if (text.Contains(_destination))
         {
-            var name = parts[0].Trim();
-            var val = parts[1].Trim();
-            if (name == "Stanton")
+            var val = text.Split(_destination)[1].Trim();
+            if (int.TryParse(val, out int dist))
             {
-                if (int.TryParse(val, out int dist))
-                {
-                    return new Tuple<string, int>(name, dist);
-                }
+                return new Tuple<string, int>(_destination, dist);
             }
         }
         return null;
     }
     private void GetSignature(MemoryStream stream)
     {
-        // try
-        // {
-        //     Image.FromStream(stream).Save("Signature.png", ImageFormat.Png);
-        // }
-        // catch (Exception pokemon)
-        // {
-        //     // Gotta catch'em all!
-        // }
+        try
+        {
+            Image.FromStream(stream).Save("Signature.png", ImageFormat.Png);
+        }
+        catch (Exception pokemon)
+        {
+            // Gotta catch'em all!
+        }
 
         using (var engine = new Tesseract.TesseractEngine(_signatureProfile.TessData, "eng", Tesseract.EngineMode.Default))
         {
@@ -190,7 +206,7 @@ public class CaptureUtils
                         {
                             if (text.Contains($"{sig * i}"))
                             {
-                                Console.WriteLine($"{_signature.Count} : {sig} / {sig * i}");
+                                Console.Write('.');
                                 _signature.Add(new Tuple<string, int>(sig.ToString(), sig * i));
                             }
                         }
@@ -208,12 +224,55 @@ public class CaptureUtils
         var sig = GetSignature();
         var archetype = GetArcheType();
 
+        if (archetype!.Item2 == 0) {
+            return;
+        }
+
         if (sig.Confidence > _signatureProfile.MinConfidence)
         {
             Console.WriteLine($"LOC: {dist.Label} / DIST: {dist.Value} ({dist.Confidence}) / SIG: {sig.Label} ({archetype?.Item1} * {archetype?.Item2}) / CONF: {sig.Confidence}");
         }
 
+        var data = new List<ScanResult>();
+
+        var fileName = $"{_origin.Replace(' ', '-')}_{_destination.Replace(' ', '-')}.json";
+        if (File.Exists(fileName))
+        {
+            data = JsonConvert.DeserializeObject<List<ScanResult>>(File.ReadAllText(fileName));
+        }
+
+        data!.Add(new ScanResult
+        {
+            Server = _server,
+            Origin = _origin,
+            Destination = dist.Label,
+            Distance = dist.Value,
+            Signature = (int)archetype!.Item1,
+            Quantity = archetype!.Item2,
+            Confidence = sig.Confidence
+        });
+
+        var jsonData = JsonConvert.SerializeObject(data);
+        File.WriteAllText(fileName, jsonData);
+
+        _signature = new List<Tuple<string, int>>();
+
         StandBy();
+    }
+
+    internal void SetServer(string server)
+    {
+        _server = server;
+    }
+
+    internal void SetOrigin(string origin)
+    {
+        _origin = origin;
+    }
+
+    internal void SetDestination(string destination)
+    {
+        _destination = destination;
     }
     #endregion
 }

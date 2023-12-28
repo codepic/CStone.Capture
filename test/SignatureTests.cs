@@ -60,5 +60,25 @@ public class SignatureTests {
         Assert.Equal("1720", actual.Label);
         Assert.Equal(5, actual.Count);
         Assert.Equal(5160, actual.Value);
+
+        Assert.Equal(CaptureMode.Scanning, sut.Mode);
+    }
+
+    [Fact]
+    public void Should_Return_To_StandBy() {
+        // Arrange
+        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
+        sut.Scanning();
+
+        // Act
+        for (int i = 0; i < _signatureProfile.MinSamples; i++)
+        {
+            sut.CaptureSignature();
+        }
+        var actual = sut.GetSignature();
+
+        // Assert
+        Assert.Equal(1, actual.Confidence);
+        Assert.Equal(CaptureMode.StandBy, sut.Mode);
     }
 }

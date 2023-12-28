@@ -42,12 +42,12 @@ class Program
     {
         Width = 160,
         Height = 160,
-        // Mole         1010
-        // Vanguard     935
-        X = 1060,
-        // Mole         550
-        // Vanguard     410
-        Y = 490,
+        X = 1010,    // Mole
+        // X = 935,     // Vanguard
+        // X = 1060,    // Vulture
+        Y = 550,     // Mole
+        // Y = 410,     // Vanguard     
+        // Y = 490,     // Vulture
         MinSamples = 5,
         MinConfidence = 0.7f,        
         ShipModel = ShipModel.Vulture,
@@ -57,6 +57,10 @@ class Program
 
     static void Main(string[] args)
     {
+        _capture.SetServer(args[0]);
+        _capture.SetOrigin(args[1]);
+        _capture.SetDestination(args[2]);
+
         using (var hook = new TaskPoolGlobalHook())
         {
             hook.KeyReleased += OnKeyReleased;
@@ -98,7 +102,11 @@ class Program
         switch (e.Data.KeyCode)
         {
             case KeyCode.VcF2:
-                _capture.Location();
+                if (_capture.GetLocation().Confidence >= _locationProfile.MinConfidence) {
+                    _capture.StandBy();
+                } else {
+                    _capture.Location();
+                }
                 break;
             case KeyCode.VcV:
                 _capture.Save();

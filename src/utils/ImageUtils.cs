@@ -20,7 +20,8 @@ public class ImageUtils : IImageUtils
             case ShipModel.Vanguard:
                 return rotated;
             case ShipModel.Vulture:
-                return rotated;
+                var duotone = ExctractColor((Bitmap)rotated, 0.65f);
+                return duotone;
         }
 
 
@@ -122,6 +123,37 @@ public class ImageUtils : IImageUtils
                 }
             }
         return outputImage;
+    }
+    public Image ExctractColor(Bitmap image, float threshold)
+    {
+        var img2dEasy = new Color[image.Width, image.Height];
+        for (int i = 0; i < image.Width; i++)
+        {
+            for (int j = 0; j < image.Height; j++)
+            {
+                Color pixel = image.GetPixel(i, j);
+
+                // Preprocessing
+                if (pixel.GetSaturation() < threshold)
+                {
+                    // Convert all greys to black.
+                    pixel = Color.Black;
+                }
+
+                img2dEasy[i, j] = pixel;
+            }
+        }
+
+        var imgOut = new Bitmap(image.Width, image.Height);
+        for (int i = 0; i < image.Width; i++)
+        {
+            for (int j = 0; j < image.Height; j++)
+            {
+                imgOut.SetPixel(i, j, img2dEasy[i, j]);
+            }
+        }
+
+        return imgOut;
     }
 
 }
