@@ -17,7 +17,7 @@ cstone halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 
 [cstone halo --server {server} --origin {origin} --destination {destination}](src\commands\AaronHaloCommand.help.md)
 
-## Contributing
+## Contributing (WIP)
 
 First off, clone this repo (with submodules).
 
@@ -30,7 +30,7 @@ cd src
 dotnet watch halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 ```
 
-## Tesseract OCR Training Data
+## Tesseract OCR Training Data (WIP)
 
 > NOTE: To reach better accuracy (and speed), we might need to train the model with CS UI
 
