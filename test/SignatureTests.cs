@@ -1,6 +1,7 @@
 using System.Drawing;
 using Moq;
-using SCCapture;
+using CStone;
+using CStone.Types;
 
 namespace Cstone.Capture.Tests;
 
@@ -45,15 +46,15 @@ public class SignatureTests {
     [Fact]
     public void Should_Get_Signature() {
         // Arrange
-        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
-        sut.Scanning();
+        var sut = new CaptureUtils("EU", _mockImageUtils.Object);
+        sut.Scanning(_signatureProfile);
 
         // Act
         for (int i = 0; i < 5; i++)
         {
             sut.CaptureSignature();
         }
-        var actual = sut.GetSignature();
+        var actual = sut.GetSignatureResult();
 
         // Assert
         Assert.Equal(0.5f, actual.Confidence);
@@ -67,15 +68,15 @@ public class SignatureTests {
     [Fact]
     public void Should_Return_To_StandBy() {
         // Arrange
-        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
-        sut.Scanning();
+        var sut = new CaptureUtils("EU", _mockImageUtils.Object);
+        sut.Scanning(_signatureProfile);
 
         // Act
         for (int i = 0; i < _signatureProfile.MinSamples; i++)
         {
             sut.CaptureSignature();
         }
-        var actual = sut.GetSignature();
+        var actual = sut.GetSignatureResult();
 
         // Assert
         Assert.Equal(1, actual.Confidence);

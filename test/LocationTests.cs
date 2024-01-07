@@ -1,6 +1,7 @@
 using System.Drawing;
 using Moq;
-using SCCapture;
+using CStone;
+using CStone.Types;
 
 namespace Cstone.Capture.Tests;
 
@@ -45,15 +46,15 @@ public class LocationTests {
     [Fact]
     public void Should_Get_Location() {
         // Arrange
-        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
-        sut.Location();
+        var sut = new CaptureUtils("EU", _mockImageUtils.Object);
+        sut.LocationMode(_locationProfile, "ARC L1", "CRU L5");
 
         // Act
         for (int i = 0; i < 5; i++)
         {
             sut.CaptureLocation();
         }
-        var actual = sut.GetLocation();
+        var actual = sut.GetLocationResult();
 
         // Assert
         Assert.Equal(0.5f, actual.Confidence);
@@ -67,15 +68,15 @@ public class LocationTests {
     [Fact]
     public void Should_Return_To_StandBy() {
         // Arrange
-        var sut = new CaptureUtils(_locationProfile, _signatureProfile, _mockImageUtils.Object);
-        sut.Location();
+        var sut = new CaptureUtils("EU", _mockImageUtils.Object);
+        sut.LocationMode(_locationProfile, "ARC L1", "CRU L5");
 
         // Act
         for (int i = 0; i < 10; i++)
         {
             sut.CaptureLocation();
         }
-        var actual = sut.GetLocation();
+        var actual = sut.GetLocationResult();
 
         // Assert
         Assert.Equal(1, actual.Confidence);
