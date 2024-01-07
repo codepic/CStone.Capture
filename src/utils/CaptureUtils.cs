@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using Newtonsoft.Json;
 
-namespace SCCapture;
+namespace CStone;
 public class CaptureUtils
 {
     private readonly CaptureProfile _locationProfile;
@@ -150,6 +150,7 @@ public class CaptureUtils
     #region Ocr Methods
     private Tuple<string, int>? GetDistance(MemoryStream stream)
     {
+#if DEBUG
         try
         {
             Image.FromStream(stream).Save("Location.png", ImageFormat.Png);
@@ -158,6 +159,7 @@ public class CaptureUtils
         {
             // Gotta catch'em all!
         }
+#endif
 
         // Setup OCR engine
         using var engine = new Tesseract.TesseractEngine(_locationProfile.TessData, "eng", Tesseract.EngineMode.Default);
@@ -182,6 +184,7 @@ public class CaptureUtils
     }
     private void GetSignature(MemoryStream stream)
     {
+#if DEBUG
         try
         {
             Image.FromStream(stream).Save("Signature.png", ImageFormat.Png);
@@ -190,6 +193,7 @@ public class CaptureUtils
         {
             // Gotta catch'em all!
         }
+#endif
 
         using (var engine = new Tesseract.TesseractEngine(_signatureProfile.TessData, "eng", Tesseract.EngineMode.Default))
         {
@@ -260,18 +264,10 @@ public class CaptureUtils
         StandBy();
     }
 
-    internal void SetServer(string server)
+    internal void SetRoute(string server, string origin, string destination)
     {
         _server = server;
-    }
-
-    internal void SetOrigin(string origin)
-    {
         _origin = origin;
-    }
-
-    internal void SetDestination(string destination)
-    {
         _destination = destination;
     }
     #endregion

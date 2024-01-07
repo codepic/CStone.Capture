@@ -1,4 +1,4 @@
-namespace SCCapture;
+namespace CStone;
 public class ListUtils
 {
     private readonly IList<Tuple<string, int>> _list;

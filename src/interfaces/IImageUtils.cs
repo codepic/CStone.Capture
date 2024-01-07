@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace SCCapture;
+namespace CStone;
 
 public interface IImageUtils
 {

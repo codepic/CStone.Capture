@@ -1,4 +1,4 @@
-namespace SCCapture;
+namespace CStone.Types;
 
 public struct CaptureProfile {
     public int X { get; set; }
@@ -9,10 +9,4 @@ public struct CaptureProfile {
     public float MinConfidence { get; set; }
     public ShipModel ShipModel { get; set; }
     public string TessData { get; set; }
-}
-
-public enum ShipModel {
-    Mole = 0,
-    Vanguard = 1,
-    Vulture = 2
 }
