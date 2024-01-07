@@ -3,10 +3,14 @@
 ## Usage
 
 ```pwsh
-dotnet watch {server} {origin} {destination}
+# Setup (only once per terminal session)
+cd src
+dotnet build --configuration Release
+$bin = Join-Path $pwd ./bin/Release/net8.0/
+$Env:Path += [IO.Path]::PathSeparator + $bin
 
-# Example
-dotnet watch 'EU' 'ARC L1' 'CRU L5'
+# Example Usage (provided that you're analyzing Aaron Halo between ARC L1 and CRU L5)
+cstone halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 ```
 
 ## Tesseract OCR Training Data
