@@ -22,7 +22,7 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
         MinSamples = 5,
         MinConfidence = 0.7f,
         ShipModel = ShipModel.Vulture,
-        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX")!
     };
     private static CaptureProfile _signatureProfile = new CaptureProfile
     {
@@ -37,7 +37,7 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
         MinSamples = 5,
         MinConfidence = 0.7f,
         ShipModel = ShipModel.Vulture,
-        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX")!
     };
 
     public override int Execute(CommandContext context, Settings settings)
