@@ -1,30 +1,29 @@
 using System.Drawing;
 using System.Drawing.Imaging;
+using CStone.Types;
 using Newtonsoft.Json;
 
 namespace CStone;
 public class CaptureUtils
 {
-    private readonly CaptureProfile _locationProfile;
-    private readonly CaptureProfile _signatureProfile;
+    private CaptureProfile _captureProfile;
     private IList<Tuple<string, int>> _location = new List<Tuple<string, int>>();
     private IList<Tuple<string, int>> _signature = new List<Tuple<string, int>>();
     private string _server;
-    private string _origin;
-    private string _destination;
+    private string? _origin;
+    private string? _destination;
     private readonly IImageUtils _imageUtils;
 
     public CaptureMode Mode { get; private set; }
 
-    public CaptureUtils(CaptureProfile locationProfile, CaptureProfile signatureProfile, IImageUtils imageUtils)
+    public CaptureUtils(string server, IImageUtils imageUtils)
     {
-        _locationProfile = locationProfile;
-        _signatureProfile = signatureProfile;
+        _server = server;
         _imageUtils = imageUtils;
     }
 
     #region Capture Mode
-    public void StandBy()
+    public void StandByMode()
     {
         if (Mode != CaptureMode.StandBy)
         {
@@ -32,20 +31,24 @@ public class CaptureUtils
             Console.WriteLine($"{Mode}");
         }
     }
-    public void Location()
+    public void LocationMode(CaptureProfile captureProfile, string origin, string destination)
     {
         if (Mode == CaptureMode.Location)
         {
-            StandBy();
+            StandByMode();
         }
         else
         {
+            _captureProfile = captureProfile;
+            _origin = origin;
+            _destination = destination;
+        
             _location = new List<Tuple<string, int>>();
             Mode = CaptureMode.Location;
             Console.WriteLine($"{Mode}");
         }
     }
-    public void Quantum()
+    public void QuantumMode()
     {
         if (Mode != CaptureMode.Quantum)
         {
@@ -55,8 +58,9 @@ public class CaptureUtils
             Console.WriteLine($"{Mode}");
         }
     }
-    public void Scanning()
+    public void Scanning(CaptureProfile captureProfile)
     {
+        _captureProfile = captureProfile;
         if (Mode != CaptureMode.Scanning)
         {
             _signature = new List<Tuple<string, int>>();
@@ -72,8 +76,8 @@ public class CaptureUtils
         if (Mode == CaptureMode.Scanning)
         {
             // Get image and process it
-            var captureBitmap = _imageUtils.GetScreenshot(_signatureProfile);
-            var processed = _imageUtils.ProcessImage(captureBitmap, _signatureProfile);
+            var captureBitmap = _imageUtils.GetScreenshot(_captureProfile);
+            var processed = _imageUtils.ProcessImage(captureBitmap, _captureProfile);
 
             // Analyze image as memory stream
             MemoryStream stream = new MemoryStream();
@@ -82,7 +86,7 @@ public class CaptureUtils
         }
 
         // Set Mode to StandBy if required confidence level is reached
-        // Mode = (GetSignature().Confidence >= _signatureProfile.MinConfidence)
+        // Mode = (GetSignature().Confidence >= _captureProfile.MinConfidence)
         //     ? CaptureMode.StandBy
         //     : CaptureMode.Scanning;
 
@@ -91,10 +95,10 @@ public class CaptureUtils
     }
     public bool CaptureLocation()
     {
-        var location = GetLocation();
-        if (location.Confidence <= _locationProfile.MinConfidence)
+        var location = GetLocationResult();
+        if (location.Confidence <= _captureProfile.MinConfidence)
         {
-            var captureBitmap = _imageUtils.GetScreenshot(_locationProfile);
+            var captureBitmap = _imageUtils.GetScreenshot(_captureProfile);
 
             MemoryStream stream = new MemoryStream();
             captureBitmap.Save(stream, ImageFormat.Png);
@@ -123,19 +127,19 @@ public class CaptureUtils
     #endregion
 
     #region Result Methods
-    public ConfidenceResult GetLocation()
+    public ConfidenceResult GetLocationResult()
     {
-        var result = new ListUtils(_location).GetConfidence(_locationProfile.MinSamples, _locationProfile.MinConfidence);
+        var result = new ListUtils(_location).GetConfidence(_captureProfile.MinSamples, _captureProfile.MinConfidence);
         return result;
     }
-    public ConfidenceResult GetSignature()
+    public ConfidenceResult GetSignatureResult()
     {
-        var result = new ListUtils(_signature).GetConfidence(_signatureProfile.MinSamples, _signatureProfile.MinConfidence);
+        var result = new ListUtils(_signature).GetConfidence(_captureProfile.MinSamples, _captureProfile.MinConfidence);
         return result;
     }
-    public Tuple<RsSignature, int>? GetArcheType()
+    private Tuple<RsSignature, int>? GetRoidArcheType()
     {
-        var sig = GetSignature().Value;
+        var sig = GetSignatureResult().Value;
         foreach (RsSignature val in Enum.GetValues(typeof(RsSignature)))
         {
             if (sig % (int)val == 0)
@@ -151,6 +155,7 @@ public class CaptureUtils
     private Tuple<string, int>? GetDistance(MemoryStream stream)
     {
 #if DEBUG
+#pragma warning disable CS0168 // Variable is declared but never used
         try
         {
             Image.FromStream(stream).Save("Location.png", ImageFormat.Png);
@@ -159,10 +164,11 @@ public class CaptureUtils
         {
             // Gotta catch'em all!
         }
+#pragma warning restore CS0168 // Variable is declared but never used
 #endif
 
         // Setup OCR engine
-        using var engine = new Tesseract.TesseractEngine(_locationProfile.TessData, "eng", Tesseract.EngineMode.Default);
+        using var engine = new Tesseract.TesseractEngine(_captureProfile.TessData, "eng", Tesseract.EngineMode.Default);
         engine.DefaultPageSegMode = Tesseract.PageSegMode.SingleLine;
         engine.SetVariable("debug_file", "log.txt");
 
@@ -172,12 +178,12 @@ public class CaptureUtils
 
         // Analyze results
         var text = page.GetText();
-        if (text.Contains(_destination))
+        if (text.Contains(_destination!))
         {
             var val = text.Split(_destination)[1].Trim();
             if (int.TryParse(val, out int dist))
             {
-                return new Tuple<string, int>(_destination, dist);
+                return new Tuple<string, int>(_destination!, dist);
             }
         }
         return null;
@@ -185,6 +191,7 @@ public class CaptureUtils
     private void GetSignature(MemoryStream stream)
     {
 #if DEBUG
+#pragma warning disable CS0168 // Variable is declared but never used
         try
         {
             Image.FromStream(stream).Save("Signature.png", ImageFormat.Png);
@@ -193,9 +200,10 @@ public class CaptureUtils
         {
             // Gotta catch'em all!
         }
+#pragma warning restore CS0168 // Variable is declared but never used
 #endif
 
-        using (var engine = new Tesseract.TesseractEngine(_signatureProfile.TessData, "eng", Tesseract.EngineMode.Default))
+        using (var engine = new Tesseract.TesseractEngine(_captureProfile.TessData, "eng", Tesseract.EngineMode.Default))
         {
             engine.DefaultPageSegMode = Tesseract.PageSegMode.SingleBlock;
             engine.SetVariable("debug_file", "log.txt");
@@ -222,33 +230,32 @@ public class CaptureUtils
     #endregion
 
     #region Persistence Methods
-    public void Save()
+    public void SaveHaloResults(string fullPath)
     {
-        var dist = GetLocation();
-        var sig = GetSignature();
-        var archetype = GetArcheType();
+        var dist = GetLocationResult();
+        var sig = GetSignatureResult();
+        var archetype = GetRoidArcheType();
 
         if (archetype!.Item2 == 0) {
             return;
         }
 
-        if (sig.Confidence > _signatureProfile.MinConfidence)
+        if (sig.Confidence > _captureProfile.MinConfidence)
         {
             Console.WriteLine($"LOC: {dist.Label} / DIST: {dist.Value} ({dist.Confidence}) / SIG: {sig.Label} ({archetype?.Item1} * {archetype?.Item2}) / CONF: {sig.Confidence}");
         }
 
         var data = new List<ScanResult>();
 
-        var fileName = $"{_origin.Replace(' ', '-')}_{_destination.Replace(' ', '-')}.json";
-        if (File.Exists(fileName))
+        if (File.Exists(fullPath))
         {
-            data = JsonConvert.DeserializeObject<List<ScanResult>>(File.ReadAllText(fileName));
+            data = JsonConvert.DeserializeObject<List<ScanResult>>(File.ReadAllText(fullPath));
         }
 
         data!.Add(new ScanResult
         {
             Server = _server,
-            Origin = _origin,
+            Origin = _origin!,
             Destination = dist.Label,
             Distance = dist.Value,
             Signature = (int)archetype!.Item1,
@@ -257,11 +264,11 @@ public class CaptureUtils
         });
 
         var jsonData = JsonConvert.SerializeObject(data);
-        File.WriteAllText(fileName, jsonData);
+        File.WriteAllText(fullPath, jsonData);
 
         _signature = new List<Tuple<string, int>>();
 
-        StandBy();
+        StandByMode();
     }
 
     internal void SetRoute(string server, string origin, string destination)

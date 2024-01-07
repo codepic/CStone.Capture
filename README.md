@@ -8,6 +8,8 @@ cd src
 dotnet build --configuration Release
 $bin = Join-Path $pwd ./bin/Release/net8.0/
 $Env:Path += [IO.Path]::PathSeparator + $bin
+$tessdata = Join-Path $pwd ../tessdata
+$Env:TESSDATA_PREFIX = $tessdata
 
 # Example Usage (provided that you're analyzing Aaron Halo between ARC L1 and CRU L5)
 cstone halo --server EU --origin 'ARC L1' --dest 'CRU L5'

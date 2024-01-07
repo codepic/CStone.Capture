@@ -20,5 +20,6 @@ class Program
             config.AddCommand<AaronHaloCommand>("halo")
                 .WithDescription("Capture asteroid data from Aaron Halo.");
         });
+        app.Run(args);
     }
 }

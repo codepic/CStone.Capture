@@ -8,8 +8,8 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/Debug/net8.0/SCCapture.dll",
-            "args": [],
+            "program": "${workspaceFolder}/src/bin/Debug/net8.0/cstone.dll",
+            "args": ["halo", "--server", "EU", "--origin", "'ARC L1'", "--destination", "'CRU L5'"],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"

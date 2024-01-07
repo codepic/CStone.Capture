@@ -1,4 +1,5 @@
 using System.Drawing;
+using CStone.Types;
 
 namespace CStone;
 

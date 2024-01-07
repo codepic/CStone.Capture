@@ -1,7 +1,9 @@
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+using CStone.Types;
 using SharpHook;
 using SharpHook.Native;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace CStone.Commands;
@@ -9,8 +11,8 @@ namespace CStone.Commands;
 public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
 {
     private Settings _settings;
-    private static CaptureUtils _capture;
-
+    private CaptureUtils _capture;
+    private string _resultsFile;
     private static CaptureProfile _locationProfile = new CaptureProfile
     {
         Width = 400,
@@ -40,22 +42,32 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
 
     public override int Execute(CommandContext context, Settings settings)
     {
+        AnsiConsole.MarkupLine("Using settings from command line...");
         _settings = settings;
 
-        Console.WriteLine($"{_settings.Server} {_settings.Origin} {_settings.Destination}");
+        var status = AnsiConsole.Status();
+            status.Start($"{_settings.Server} {_settings.Origin} {_settings.Destination}", ctx => {
 
-        new CaptureUtils(_locationProfile, _signatureProfile, new ImageUtils());
+                AnsiConsole.MarkupLine("Initializing capture utils...");
+                _capture = new CaptureUtils(_settings.Server, new ImageUtils());
 
-        using (var hook = new TaskPoolGlobalHook())
-        {
-            hook.KeyReleased += OnKeyReleased;
-            hook.KeyPressed += OnKeyPressed;
-            hook.RunAsync();
-            while (true)
-            {
-                Scan();
-            }
-        }
+                AnsiConsole.MarkupLine("Setting results file...");
+                _resultsFile = $"{_settings.Origin.Replace(' ', '-')}_{_settings.Destination.Replace(' ', '-')}.json";
+
+                using (var hook = new TaskPoolGlobalHook())
+                {
+                    AnsiConsole.MarkupLine("Binding keys...");
+                    hook.KeyReleased += OnKeyReleased;
+                    hook.KeyPressed += OnKeyPressed;
+                    hook.RunAsync();
+                    AnsiConsole.MarkupLine("Keyboard hooks running...");
+
+                    while (ShouldContinue)
+                    {
+                        Scan(ctx);
+                    }
+                }
+            });
 
         return 0;
     }
@@ -72,40 +84,42 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
         public string Destination { get; set; }
     }
 
-    private static void OnKeyReleased(object? sender, KeyboardHookEventArgs e)
+    private bool ShouldContinue {get; set;} = true;
+
+    private void OnKeyReleased(object? sender, KeyboardHookEventArgs e)
     {
         switch (e.Data.KeyCode)
         {
             case KeyCode.VcF2:
-                if (_capture.GetLocation().Confidence >= _locationProfile.MinConfidence)
+                if (_capture.GetLocationResult().Confidence >= _locationProfile.MinConfidence)
                 {
-                    _capture.StandBy();
+                    _capture.StandByMode();
                 }
                 else
                 {
-                    _capture.Location();
+                    _capture.LocationMode(_locationProfile, _settings.Origin, _settings.Destination);
                 }
                 break;
             case KeyCode.VcV:
-                _capture.Save();
+                _capture.SaveHaloResults(_resultsFile);
                 break;
             case KeyCode.VcB:
-                _capture.Quantum();
+                _capture.QuantumMode();
                 break;
         }
     }
 
-    private static void OnKeyPressed(object? sender, KeyboardHookEventArgs e)
+    private void OnKeyPressed(object? sender, KeyboardHookEventArgs e)
     {
         switch (e.Data.KeyCode)
         {
             case KeyCode.VcV:
-                _capture.Scanning();
+                _capture.Scanning(_signatureProfile);
                 break;
         }
     }
 
-    private static void Scan()
+    private void Scan(StatusContext ctx)
     {
         switch (_capture.Mode)
         {
@@ -118,7 +132,8 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
             case CaptureMode.Location:
                 while (_capture.CaptureLocation())
                 {
-                    Console.Write('.');
+                    //TODO: Use AnsiConsole.Progress)
+                    AnsiConsole.Markup(".");
                 }
                 break;
             case CaptureMode.Scanning:
