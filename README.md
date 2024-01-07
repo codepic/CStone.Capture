@@ -13,16 +13,11 @@ $Env:Path += [IO.Path]::PathSeparator + $bin
 cstone halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 ```
 
-## Tesseract OCR Training Data
+## Commands
 
-You have basically 2 options:
+[cstone halo --server {server} --origin {origin} --destination {destination}](src\commands\AaronHaloCommand.help.md)
 
-1. Download [eng.traineddata](https://github.com/tesseract-ocr/tessdata_fast) into `/tessdata`
-2. [Train your own tessdata](https://pretius.com/blog/ocr-tesseract-training-data/)
-
-Whichever you choose, point you `TESSDATA_PREFIX` environment variable to the full path of the `tessdata` directory. Do ditch the trailing slash!
-
-## Usage
+## Contributing
 
 First off, clone this repo (with submodules).
 
@@ -32,27 +27,16 @@ dotnet test
 
 # run the app
 cd src
-dotnet watch
+dotnet watch halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 ```
 
-Lauch the game, warp to a location, and start scanning.
+## Tesseract OCR Training Data
 
-## Key Bindings
+> NOTE: To reach better accuracy (and speed), we might need to train the model with CS UI
 
-### F2
+You have basically 2 options:
 
-The app will turn into `Location` mode and wait for you to select a location (Stanton star)
+1. Download [eng.traineddata](https://github.com/tesseract-ocr/tessdata_fast) into `/tessdata`
+2. [Train your own tessdata](https://pretius.com/blog/ocr-tesseract-training-data/)
 
-### V
-
-#### KeyDown
-
-The app will enter `Scanning` mode.
-
-#### KeyUp
-
-The app will save the results of the scanning
-
-### B
-
-The app will enter Quantum mode.
+Whichever you choose, point you `TESSDATA_PREFIX` environment variable to the full path of the `tessdata` directory. Do ditch the trailing slash!

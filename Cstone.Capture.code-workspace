@@ -4,5 +4,11 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"explorer.fileNesting.enabled": true,
+		"explorer.fileNesting.patterns": {
+			"*Command.cs": "${capture}Command.help.md"
+		}
+
+	}
 }
