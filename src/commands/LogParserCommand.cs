@@ -1,7 +1,6 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -30,11 +29,23 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
         switch (_settings.Output)
         {
             case "console":
-                
+
                 foreach (var line in _lines)
                 {
                     AnsiConsole.WriteLine(line);
                 }
+                break;
+            case "uif":
+                //before your loop
+                var uif = new StringBuilder();
+
+                foreach (var line in _lines)
+                {
+                    uif.AppendLine(line);
+                }
+
+                //after your loop
+                File.WriteAllText(Path.Join(Environment.CurrentDirectory, "output.uif"), uif.ToString());
                 break;
             case "csv":
                 //before your loop
@@ -70,9 +81,19 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
             var client_price = ExtractRegex<int>(_lines[i], "client_price", new Regex("client_price\\[(?<client_price>[0-9]+)"));
             var itemClassGUID = ExtractRegex<string>(_lines[i], "itemClassGUID", new Regex("itemClassGUID\\[(?<itemClassGUID>[0-9a-z-]+)\\]"));
             var itemName = ExtractRegex<string>(_lines[i], "itemName", new Regex("itemName\\[(?<itemName>[a-zA-Z0-9_]+)\\]"));
-            var quantity = ExtractRegex<string>(_lines[i], "quantity", new Regex("quantity\\[(?<quantity>[0-9]+)\\]"));
+            var quantity = ExtractRegex<int>(_lines[i], "quantity", new Regex("quantity\\[(?<quantity>[0-9]+)\\]"));
 
-            _lines[i] = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", date.ToString("yyyy-MM-dd HH:mm:ss"), playerId.ToString(), shopId.ToString(), shopName, kioskId.ToString(), kioskState, result, type, client_price, itemClassGUID, itemName, quantity);
+            switch (_settings.Output)
+            {
+                case "uif":
+                    _lines[i] = string.Format("{0},,,{1},,,,{2},,,{3}", itemClassGUID, (client_price / quantity).ToString(), date.AddYears(930).ToString("yyyy-MM-dd"), shopId.ToString());
+                    break;
+                default:
+                    _lines[i] = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", date.ToString("yyyy-MM-dd HH:mm:ss"), playerId.ToString(), shopId.ToString(), shopName, kioskId.ToString(), kioskState, result, type, client_price, itemClassGUID, itemName, quantity);
+                    break;
+            }
+
+
         }
     }
 
@@ -90,22 +111,33 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
     {
         foreach (string file in Directory.EnumerateFiles(_settings.Directory, "*.log"))
         {
-            const int BufferSize = 128;
-            using (var fileStream = File.OpenRead(file))
-            using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
-            {
-                string line;
-                while ((line = streamReader.ReadLine()) != null)
-                {
-                    if (line.Contains("CEntityComponentShopUIProvider::SendShopBuyRequest"))
-                    {
-                        if (_settings.Output == "raw") {
-                            AnsiConsole.WriteLine(line);
-                        } else {
-                            _lines.Add(line);
-                        }
-                        
+            ExtractFile(file);
+        }
 
+        if (_settings.Output == "uif") {
+            var gameLog = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries/StarCitizen/LIVE/Game.log");
+            ExtractFile(gameLog);
+        }
+    }
+
+    private void ExtractFile(string file)
+    {
+        const int BufferSize = 128;
+        using (var fileStream = File.OpenRead(file))
+        using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
+        {
+            string line;
+            while ((line = streamReader.ReadLine()) != null)
+            {
+                if (line.Contains("CEntityComponentShopUIProvider::SendShopSellRequest"))
+                {
+                    if (_settings.Output == "raw")
+                    {
+                        AnsiConsole.WriteLine(line);
+                    }
+                    else
+                    {
+                        _lines.Add(line);
                     }
                 }
             }
