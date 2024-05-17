@@ -1,7 +1,7 @@
 using System.Drawing;
 using CStone;
 
-namespace Cstone.Capture.Tests;
+namespace Cstone.Cli.Tests;
 
 public class ImageTests {
 

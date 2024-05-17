@@ -1,4 +1,4 @@
-# CStone.Capture (WIP)
+# cstone.cli (WIP)
 
 ## Usage
 

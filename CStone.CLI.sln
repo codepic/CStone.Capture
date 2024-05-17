@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cstone.Capture.Console", "src\Cstone.Capture.Console.csproj", "{88DF7250-09B1-44FB-8120-13B5A301942B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cstone.Cli.Console", "src\Cstone.Cli.Console.csproj", "{88DF7250-09B1-44FB-8120-13B5A301942B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cstone.Capture.Tests", "test\Cstone.Capture.Tests.csproj", "{07652E53-BF6C-4662-AA60-04D06A9635DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cstone.Cli.Tests", "test\Cstone.Cli.Tests.csproj", "{07652E53-BF6C-4662-AA60-04D06A9635DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

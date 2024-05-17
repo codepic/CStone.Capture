@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Cstone.Capture.Console.csproj" />
+    <ProjectReference Include="..\src\Cstone.Cli.Console.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using Moq;
 using CStone;
 using CStone.Types;
 
-namespace Cstone.Capture.Tests;
+namespace Cstone.Cli.Tests;
 
 public class LocationTests {
     private readonly Mock<IImageUtils> _mockImageUtils;
@@ -16,7 +16,7 @@ public class LocationTests {
         MinSamples = 10,
         MinConfidence = 0.7f,
         ShipModel = ShipModel.Vulture,
-        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Cli/tessdata"
     };
     private static CaptureProfile _signatureProfile = new CaptureProfile
     {
@@ -31,7 +31,7 @@ public class LocationTests {
         MinSamples = 10,
         MinConfidence = 0.7f,        
         ShipModel = ShipModel.Vulture,
-        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Capture/tessdata"
+        TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Cli/tessdata"
     };
 
     public LocationTests()
