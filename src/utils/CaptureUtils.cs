@@ -14,12 +14,19 @@ public class CaptureUtils
     private string? _destination;
     private readonly IImageUtils _imageUtils;
 
+    private readonly Action<ConfidenceResult?> _logLocationResult;
+    private readonly Action<ConfidenceResult?> _logSignatureResult;
+    private readonly Action<ScanResult> _logScanResult;
+
     public CaptureMode Mode { get; private set; }
 
-    public CaptureUtils(string server, IImageUtils imageUtils)
+    public CaptureUtils(string server, IImageUtils imageUtils, Action<ConfidenceResult?> locationAction, Action<ConfidenceResult?> signatureAction, Action<ScanResult> resultAction)
     {
         _server = server;
         _imageUtils = imageUtils;
+        _logLocationResult = locationAction;
+        _logSignatureResult = signatureAction;
+        _logScanResult = resultAction;
     }
 
     #region Capture Mode
@@ -28,7 +35,6 @@ public class CaptureUtils
         if (Mode != CaptureMode.StandBy)
         {
             Mode = CaptureMode.StandBy;
-            Console.WriteLine($"{Mode}");
         }
     }
     public void LocationMode(CaptureProfile captureProfile, string origin, string destination)
@@ -42,10 +48,9 @@ public class CaptureUtils
             _captureProfile = captureProfile;
             _origin = origin;
             _destination = destination;
-        
+
             _location = new List<Tuple<string, int>>();
             Mode = CaptureMode.Location;
-            Console.WriteLine($"{Mode}");
         }
     }
     public void QuantumMode()
@@ -55,7 +60,7 @@ public class CaptureUtils
             _location = new List<Tuple<string, int>>();
             _signature = new List<Tuple<string, int>>();
             Mode = CaptureMode.Quantum;
-            Console.WriteLine($"{Mode}");
+            _logLocationResult(null);
         }
     }
     public void Scanning(CaptureProfile captureProfile)
@@ -65,7 +70,6 @@ public class CaptureUtils
         {
             _signature = new List<Tuple<string, int>>();
             Mode = CaptureMode.Scanning;
-            Console.WriteLine($"{Mode}");
         }
     }
     #endregion
@@ -83,6 +87,7 @@ public class CaptureUtils
             MemoryStream stream = new MemoryStream();
             processed.Save(stream, ImageFormat.Png);
             GetSignature(stream);
+            GetSignatureResult();
         }
 
         // Set Mode to StandBy if required confidence level is reached
@@ -96,6 +101,7 @@ public class CaptureUtils
     public bool CaptureLocation()
     {
         var location = GetLocationResult();
+
         if (location.Confidence <= _captureProfile.MinConfidence)
         {
             var captureBitmap = _imageUtils.GetScreenshot(_captureProfile);
@@ -103,11 +109,9 @@ public class CaptureUtils
             MemoryStream stream = new MemoryStream();
             captureBitmap.Save(stream, ImageFormat.Png);
 
-
             var dist = GetDistance(stream);
             if (dist == null)
             {
-                Thread.Sleep(1000);
                 return true;
             }
             else
@@ -118,7 +122,6 @@ public class CaptureUtils
         else
         {
             Mode = CaptureMode.StandBy;
-            Console.WriteLine($"LOC: {location.Label} / DIST: {location.Value}");
         }
 
         // Signal caller whether to keep calling or not
@@ -130,11 +133,13 @@ public class CaptureUtils
     public ConfidenceResult GetLocationResult()
     {
         var result = new ListUtils(_location).GetConfidence(_captureProfile.MinSamples, _captureProfile.MinConfidence);
+        _logLocationResult(result);
         return result;
     }
     public ConfidenceResult GetSignatureResult()
     {
         var result = new ListUtils(_signature).GetConfidence(_captureProfile.MinSamples, _captureProfile.MinConfidence);
+        _logSignatureResult(result);
         return result;
     }
     private Tuple<RsSignature, int>? GetRoidArcheType()
@@ -218,7 +223,6 @@ public class CaptureUtils
                         {
                             if (text.Contains($"{sig * i}"))
                             {
-                                Console.Write('.');
                                 _signature.Add(new Tuple<string, int>(sig.ToString(), sig * i));
                             }
                         }
@@ -236,13 +240,9 @@ public class CaptureUtils
         var sig = GetSignatureResult();
         var archetype = GetRoidArcheType();
 
-        if (archetype!.Item2 == 0) {
-            return;
-        }
-
-        if (sig.Confidence > _captureProfile.MinConfidence)
+        if (archetype!.Item2 == 0)
         {
-            Console.WriteLine($"LOC: {dist.Label} / DIST: {dist.Value} ({dist.Confidence}) / SIG: {sig.Label} ({archetype?.Item1} * {archetype?.Item2}) / CONF: {sig.Confidence}");
+            return;
         }
 
         var data = new List<ScanResult>();
@@ -252,16 +252,18 @@ public class CaptureUtils
             data = JsonConvert.DeserializeObject<List<ScanResult>>(File.ReadAllText(fullPath));
         }
 
-        data!.Add(new ScanResult
+        var result = new ScanResult
         {
             Server = _server,
             Origin = _origin!,
             Destination = dist.Label,
             Distance = dist.Value,
+            Archetype = archetype.Item1.ToString(),
             Signature = (int)archetype!.Item1,
             Quantity = archetype!.Item2,
             Confidence = sig.Confidence
-        });
+        };
+        data!.Add(result);
 
         var jsonData = JsonConvert.SerializeObject(data);
         File.WriteAllText(fullPath, jsonData);
@@ -269,6 +271,8 @@ public class CaptureUtils
         _signature = new List<Tuple<string, int>>();
 
         StandByMode();
+        
+        _logScanResult(result);
     }
 
     internal void SetRoute(string server, string origin, string destination)

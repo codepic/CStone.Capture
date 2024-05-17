@@ -45,11 +45,37 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
         AnsiConsole.MarkupLine("Using settings from command line...");
         _settings = settings;
 
-        var status = AnsiConsole.Status();
-            status.Start($"{_settings.Server} {_settings.Origin} {_settings.Destination}", ctx => {
+        var statusPrefix = $"HALO ({_settings.Server}): {_settings.Origin.Replace(' ', '-')} <> {_settings.Destination.Replace(' ', '-')}";
+
+        var status = AnsiConsole.Status().AutoRefresh(false);
+            status.Start(statusPrefix, ctx => {
 
                 AnsiConsole.MarkupLine("Initializing capture utils...");
-                _capture = new CaptureUtils(_settings.Server, new ImageUtils());
+                _capture = new CaptureUtils(_settings.Server, new ImageUtils(), (loc) => {
+                        if (loc == null) {
+                            ctx.Status = $"{statusPrefix} : {_capture.Mode}";
+                            ctx.Refresh();
+                            return;
+                        }
+                        if (loc.Value.Count >= _locationProfile.MinSamples && loc.Value.Confidence >= _locationProfile.MinConfidence) {
+                            Console.Beep(37, 1);
+                            ctx.Status = $"{statusPrefix.Replace("<>", $"<--{loc.Value.Value}-->")} MODE: {_capture.Mode}";
+                            ctx.Refresh();
+                        }
+                }, (sig) => {
+                    if (sig != null && sig.Value.Count > 2) {
+
+                        if (sig.Value.Count >= _signatureProfile.MinSamples && sig.Value.Confidence >= _signatureProfile.MinConfidence) {
+                            Console.Beep(37, 1);
+                        }
+                        
+                        ctx.Status = $"{new string('-', sig.Value.Count)} / {sig.Value.Label} / {sig.Value.Confidence}";
+                        ctx.Refresh();
+                    }
+                }, (result) => {
+                    ctx.Status = $"{result.Server} {result.Origin.Replace(' ', '-')} {result.Destination.Replace(' ', '-')} {result.Distance} {result.Archetype} * {result.Quantity} = {result.Signature * result.Quantity} ({result.Confidence})";
+                    ctx.Refresh();
+                });
 
                 AnsiConsole.MarkupLine("Setting results file...");
                 _resultsFile = $"{_settings.Origin.Replace(' ', '-')}_{_settings.Destination.Replace(' ', '-')}.json";
@@ -133,7 +159,7 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
                 while (_capture.CaptureLocation())
                 {
                     //TODO: Use AnsiConsole.Progress)
-                    AnsiConsole.Markup(".");
+                    // AnsiConsole.Markup(".");
                 }
                 break;
             case CaptureMode.Scanning:
