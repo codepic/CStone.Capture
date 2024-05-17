@@ -7,8 +7,8 @@ namespace CStone;
 public class CaptureUtils
 {
     private CaptureProfile _captureProfile;
-    private IList<Tuple<string, int>> _location = new List<Tuple<string, int>>();
-    private IList<Tuple<string, int>> _signature = new List<Tuple<string, int>>();
+    private IList<Tuple<string, int>> _location = [];
+    private IList<Tuple<string, int>> _signature = [];
     private string _server;
     private string? _origin;
     private string? _destination;
@@ -49,7 +49,7 @@ public class CaptureUtils
             _origin = origin;
             _destination = destination;
 
-            _location = new List<Tuple<string, int>>();
+            _location = [];
             Mode = CaptureMode.Location;
         }
     }
@@ -57,8 +57,8 @@ public class CaptureUtils
     {
         if (Mode != CaptureMode.Quantum)
         {
-            _location = new List<Tuple<string, int>>();
-            _signature = new List<Tuple<string, int>>();
+            _location = [];
+            _signature = [];
             Mode = CaptureMode.Quantum;
             _logLocationResult(null);
         }
@@ -68,7 +68,7 @@ public class CaptureUtils
         _captureProfile = captureProfile;
         if (Mode != CaptureMode.Scanning)
         {
-            _signature = new List<Tuple<string, int>>();
+            _signature = [];
             Mode = CaptureMode.Scanning;
         }
     }
@@ -84,7 +84,7 @@ public class CaptureUtils
             var processed = _imageUtils.ProcessImage(captureBitmap, _captureProfile);
 
             // Analyze image as memory stream
-            MemoryStream stream = new MemoryStream();
+            MemoryStream stream = new();
             processed.Save(stream, ImageFormat.Png);
             GetSignature(stream);
             GetSignatureResult();
@@ -106,7 +106,9 @@ public class CaptureUtils
         {
             var captureBitmap = _imageUtils.GetScreenshot(_captureProfile);
 
+#pragma warning disable IDE0090 // Use 'new(...)'
             MemoryStream stream = new MemoryStream();
+#pragma warning restore IDE0090 // Use 'new(...)'
             captureBitmap.Save(stream, ImageFormat.Png);
 
             var dist = GetDistance(stream);
@@ -268,7 +270,7 @@ public class CaptureUtils
         var jsonData = JsonConvert.SerializeObject(data);
         File.WriteAllText(fullPath, jsonData);
 
-        _signature = new List<Tuple<string, int>>();
+        _signature = [];
 
         StandByMode();
         

@@ -7,7 +7,7 @@ namespace Cstone.Cli.Tests;
 
 public class LocationTests {
     private readonly Mock<IImageUtils> _mockImageUtils;
-    private static CaptureProfile _locationProfile = new CaptureProfile
+    private static CaptureProfile _locationProfile = new()
     {
         Width = 400,
         Height = 42,
@@ -18,7 +18,7 @@ public class LocationTests {
         ShipModel = ShipModel.Vulture,
         TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX") ?? "C:/Users/JaniHyytiäinen/src/Cstone.Cli/tessdata"
     };
-    private static CaptureProfile _signatureProfile = new CaptureProfile
+    private static CaptureProfile _signatureProfile = new()
     {
         Width = 160,
         Height = 160,

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cstone.Cli.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "parse-logs -o csv"
+    }
+  }
+}

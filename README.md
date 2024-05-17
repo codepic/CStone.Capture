@@ -18,6 +18,7 @@ cstone halo --server EU --origin 'ARC L1' --dest 'CRU L5'
 ## Commands
 
 [cstone halo --server {server} --origin {origin} --destination {destination}](src\commands\AaronHaloCommand.help.md)
+[cstone parse-logs [-d|--directory {path}]  [-o|--output (raw|console|csv)]](src\commands\LogParserCommand.help.md)
 
 ## Contributing (WIP)
 

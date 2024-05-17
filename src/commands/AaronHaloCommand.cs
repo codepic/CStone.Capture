@@ -13,7 +13,9 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
     private Settings _settings;
     private CaptureUtils _capture;
     private string _resultsFile;
+#pragma warning disable IDE0090 // Use 'new(...)'
     private static CaptureProfile _locationProfile = new CaptureProfile
+#pragma warning restore IDE0090 // Use 'new(...)'
     {
         Width = 400,
         Height = 42,
@@ -24,7 +26,9 @@ public class AaronHaloCommand : Command<AaronHaloCommand.Settings>
         ShipModel = ShipModel.Vulture,
         TessData = Environment.GetEnvironmentVariable("TESSDATA_PREFIX")!
     };
+#pragma warning disable IDE0090 // Use 'new(...)'
     private static CaptureProfile _signatureProfile = new CaptureProfile
+#pragma warning restore IDE0090 // Use 'new(...)'
     {
         Width = 160,
         Height = 160,

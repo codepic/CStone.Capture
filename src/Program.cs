@@ -19,6 +19,8 @@ class Program
             
             config.AddCommand<AaronHaloCommand>("halo")
                 .WithDescription("Capture asteroid data from Aaron Halo.");
+            config.AddCommand<LogParserCommand>("parse-logs")
+                .WithDescription("Parse Game.log for further use.");
         });
         app.Run(args);
     }

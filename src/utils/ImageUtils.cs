@@ -39,7 +39,9 @@ public class ImageUtils : IImageUtils
     }
     public Image RotateImage(Image bmp, float angle)
     {
+#pragma warning disable IDE0090 // Use 'new(...)'
         Bitmap rotatedImage = new Bitmap(bmp.Width, bmp.Height);
+#pragma warning restore IDE0090 // Use 'new(...)'
         rotatedImage.SetResolution(bmp.HorizontalResolution, bmp.VerticalResolution);
 
         using (Graphics g = Graphics.FromImage(rotatedImage))
@@ -94,7 +96,9 @@ public class ImageUtils : IImageUtils
     }
     private Image ColorReplace(Image inputImage, int tolerance, Color oldColor, Color NewColor)
     {
+#pragma warning disable IDE0090 // Use 'new(...)'
         Bitmap outputImage = new Bitmap(inputImage.Width, inputImage.Height);
+#pragma warning restore IDE0090 // Use 'new(...)'
         Graphics G = Graphics.FromImage(outputImage);
         G.DrawImage(inputImage, 0, 0);
         for (int y = 0; y < outputImage.Height; y++)
