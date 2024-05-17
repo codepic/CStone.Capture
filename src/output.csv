@@ -1,4 +1,4 @@
-date,playerId,shopId,shopName,kioskId,kioskState,result,type,client_price
+date,playerId,shopId,shopName,kioskId,kioskState,result,type,client_price,itemClassGUID,itemName,quantity
 2023-09-11 17.23.35,1069522220447,1171261755733,SCShop_RestStop_Pharmacy-001,1171261755732,,,,500,7d50411f-088c-4c99-b85a-a6eaf95504c3,crlf_consumable_healing_01,5
 2023-09-12 19.25.21,1069522220447,1158922531446,SCShop_ShubinInterstellar_NewBabbage,1158922531444,,,,1000,6a3daab4-c2c2-4a11-a7a6-a9c77baf6b1d,slaver_undersuit_01_01_01,1
 2023-09-12 19.25.50,1069522220447,1158922531446,SCShop_ShubinInterstellar_NewBabbage,1158922531444,,,,1000,6a3daab4-c2c2-4a11-a7a6-a9c77baf6b1d,slaver_undersuit_01_01_01,1

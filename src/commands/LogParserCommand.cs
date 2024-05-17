@@ -39,7 +39,7 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
             case "csv":
                 //before your loop
                 var csv = new StringBuilder();
-                csv.AppendLine("date,playerId,shopId,shopName,kioskId,kioskState,result,type,client_price");
+                csv.AppendLine("date,playerId,shopId,shopName,kioskId,kioskState,result,type,client_price,itemClassGUID,itemName,quantity");
 
                 foreach (var line in _lines)
                 {
