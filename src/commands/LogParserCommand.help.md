@@ -7,15 +7,21 @@
 
 ## Parameters
 
-### -d|--directory
+### -p|--path
 
-Defines which directory to look for records.
+Defines which file or directory to look for records.
+
+### -w|--watch
+
+Watches the selected **file** for changes. See `-p|--path`.
 
 ### -o|--output
 
 Defines the output format.
 
 #### UIF
+
+`cstone parse-logs -o uif`
 
 Will output purchases in UIF-compatible format:
 
@@ -68,7 +74,4 @@ b07c855e-79ac-4c5c-b7b7-aa8df9b1a987,,,684,,,,2953-08-27,,,1109586376765
 
 > **TODO:** Defines which player id to filter.
 
-### -w|--watch
-
-> **TODO:** Watches the files for changes.
 

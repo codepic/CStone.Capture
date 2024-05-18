@@ -2,7 +2,7 @@
   "profiles": {
     "Cstone.Cli.Console": {
       "commandName": "Project",
-      "commandLineArgs": "parse-logs -o csv"
+      "commandLineArgs": "parse-logs -p \"C:\\Program Files\\Roberts Space Industries\\StarCitizen\\LIVE\\Game.log\" -o raw --watch"
     }
   }
 }

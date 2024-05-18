@@ -1,5 +1,7 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +11,41 @@ namespace CStone.Commands;
 public class LogParserCommand : Command<LogParserCommand.Settings>
 {
     private Settings _settings;
-    private List<string> _lines = new List<string>();
+    private ObservableCollection<string> _lines;
+    private ObservableCollection<string> _parsed;
+    private string _gameDirectory;
+    private string _gameLogFileName;
+    private string _gameLogFullPath;
+
+    public LogParserCommand()
+    {
+        _parsed = new ObservableCollection<string>();
+        _parsed.CollectionChanged += OnParsed;
+
+        _lines = new ObservableCollection<string>();
+        _lines.CollectionChanged += OnExtacted;
+    }
+
+    private void OnExtacted(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            var list = new List<string>();
+            foreach (var item in e.NewItems)
+            {
+                list.Add(item.ToString());
+            }
+            ParseLines(list);
+        }
+    }
+
+    private void OnParsed(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add)
+        {
+            OutputLines(e.NewItems);
+        }
+    }
 
     public override int Execute(CommandContext context, Settings settings)
     {
@@ -17,31 +53,34 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
         _settings = settings;
 
         ExtractLines();
-        ParseLines();
-        OutputLines();
+
+        if (_settings.Watch)
+        {
+            Watch();
+        }
 
         return 0;
     }
 
-    private void OutputLines()
+    private void OutputLines(System.Collections.IList? newItems)
     {
 
         switch (_settings.Output)
         {
             case "console":
 
-                foreach (var line in _lines)
+                foreach (var line in newItems)
                 {
-                    AnsiConsole.WriteLine(line);
+                    AnsiConsole.WriteLine(line.ToString());
                 }
                 break;
             case "uif":
                 //before your loop
                 var uif = new StringBuilder();
 
-                foreach (var line in _lines)
+                foreach (var line in newItems)
                 {
-                    uif.AppendLine(line);
+                    uif.AppendLine(line.ToString());
                 }
 
                 //after your loop
@@ -52,9 +91,9 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
                 var csv = new StringBuilder();
                 csv.AppendLine("date,playerId,shopId,shopName,kioskId,kioskState,result,type,client_price,itemClassGUID,itemName,quantity");
 
-                foreach (var line in _lines)
+                foreach (var line in newItems)
                 {
-                    csv.AppendLine(line);
+                    csv.AppendLine(line.ToString());
                 }
 
                 //after your loop
@@ -65,31 +104,31 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
 
     }
 
-    private void ParseLines()
+    private void ParseLines(IList<string> newItems)
     {
-        for (int i = 0; i < _lines.Count; i++)
+        for (int i = 0; i < newItems.Count; i++)
         {
-            var date = ExtractRegex<DateTime>(_lines[i], "date", new Regex("(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z)"));
-            var playerId = ExtractRegex<Int128>(_lines[i], "playerId", new Regex("playerId\\[(?<playerId>[0-9]+)\\]"));
-            var shopId = ExtractRegex<Int128>(_lines[i], "shopId", new Regex("shopId\\[(?<shopId>[0-9]+)\\]"));
-            var shopName = ExtractRegex<string>(_lines[i], "shopName", new Regex("shopName\\[(?<shopName>[a-zA-Z0-9-_]+)\\]"));
-            var kioskId = ExtractRegex<Int128>(_lines[i], "kioskId", new Regex("kioskId\\[(?<kioskId>[0-9]+)\\]"));
-            var kioskState = ExtractRegex<string>(_lines[i], "kioskState", new Regex("kioskState\\[(?<kioskState>[a-zA-Z]+)\\]"));
-            var result = ExtractRegex<string>(_lines[i], "result", new Regex("result\\[(?<result>[a-zA-Z]+)\\]"));
-            var type = ExtractRegex<string>(_lines[i], "type", new Regex("type\\[(?<type>[a-zA-Z]+)\\]"));
+            var date = ExtractRegex<DateTime>(newItems[i], "date", new Regex("(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z)"));
+            var playerId = ExtractRegex<Int128>(newItems[i], "playerId", new Regex("playerId\\[(?<playerId>[0-9]+)\\]"));
+            var shopId = ExtractRegex<Int128>(newItems[i], "shopId", new Regex("shopId\\[(?<shopId>[0-9]+)\\]"));
+            var shopName = ExtractRegex<string>(newItems[i], "shopName", new Regex("shopName\\[(?<shopName>[a-zA-Z0-9-_]+)\\]"));
+            var kioskId = ExtractRegex<Int128>(newItems[i], "kioskId", new Regex("kioskId\\[(?<kioskId>[0-9]+)\\]"));
+            var kioskState = ExtractRegex<string>(newItems[i], "kioskState", new Regex("kioskState\\[(?<kioskState>[a-zA-Z]+)\\]"));
+            var result = ExtractRegex<string>(newItems[i], "result", new Regex("result\\[(?<result>[a-zA-Z]+)\\]"));
+            var type = ExtractRegex<string>(newItems[i], "type", new Regex("type\\[(?<type>[a-zA-Z]+)\\]"));
 
-            var client_price = ExtractRegex<int>(_lines[i], "client_price", new Regex("client_price\\[(?<client_price>[0-9]+)"));
-            var itemClassGUID = ExtractRegex<string>(_lines[i], "itemClassGUID", new Regex("itemClassGUID\\[(?<itemClassGUID>[0-9a-z-]+)\\]"));
-            var itemName = ExtractRegex<string>(_lines[i], "itemName", new Regex("itemName\\[(?<itemName>[a-zA-Z0-9_]+)\\]"));
-            var quantity = ExtractRegex<int>(_lines[i], "quantity", new Regex("quantity\\[(?<quantity>[0-9]+)\\]"));
+            var client_price = ExtractRegex<int>(newItems[i], "client_price", new Regex("client_price\\[(?<client_price>[0-9]+)"));
+            var itemClassGUID = ExtractRegex<string>(newItems[i], "itemClassGUID", new Regex("itemClassGUID\\[(?<itemClassGUID>[0-9a-z-]+)\\]"));
+            var itemName = ExtractRegex<string>(newItems[i], "itemName", new Regex("itemName\\[(?<itemName>[a-zA-Z0-9_]+)\\]"));
+            var quantity = ExtractRegex<int>(newItems[i], "quantity", new Regex("quantity\\[(?<quantity>[0-9]+)\\]"));
 
             switch (_settings.Output)
             {
                 case "uif":
-                    _lines[i] = string.Format("{0},,,{1},,,,{2},,,{3}", itemClassGUID, (client_price / quantity).ToString(), date.AddYears(930).ToString("yyyy-MM-dd"), shopId.ToString());
+                    _parsed.Add(string.Format("{0},,,{1},,,,{2},,,{3}", itemClassGUID, (client_price / quantity).ToString(), date.AddYears(930).ToString("yyyy-MM-dd"), shopId.ToString()));
                     break;
                 default:
-                    _lines[i] = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", date.ToString("yyyy-MM-dd HH:mm:ss"), playerId.ToString(), shopId.ToString(), shopName, kioskId.ToString(), kioskState, result, type, client_price, itemClassGUID, itemName, quantity);
+                    _parsed.Add(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", date.ToString("yyyy-MM-dd HH:mm:ss"), playerId.ToString(), shopId.ToString(), shopName, kioskId.ToString(), kioskState, result, type, client_price, itemClassGUID, itemName, quantity));
                     break;
             }
 
@@ -109,27 +148,44 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
 
     private void ExtractLines()
     {
-        foreach (string file in Directory.EnumerateFiles(_settings.Directory, "*.log"))
+        if (IsDirectory(_settings.Path))
         {
-            ExtractFile(file);
+            foreach (string file in Directory.EnumerateFiles(_settings.Path, "*.log"))
+            {
+                ExtractFile(file);
+            }
+        }
+        else
+        {
+            ExtractFile(_settings.Path);
         }
 
-        if (_settings.Output == "uif") {
+        if (_settings.Output == "uif")
+        {
             var gameLog = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries/StarCitizen/LIVE/Game.log");
             ExtractFile(gameLog);
         }
     }
 
+    private bool IsDirectory(string path)
+    {
+        FileAttributes attr = File.GetAttributes(path);
+        return attr.HasFlag(FileAttributes.Directory);
+    }
+
     private void ExtractFile(string file)
     {
         const int BufferSize = 128;
-        using (var fileStream = File.OpenRead(file))
+        using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
         using (var streamReader = new StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
         {
             string line;
             while ((line = streamReader.ReadLine()) != null)
             {
-                if (line.Contains("CEntityComponentShopUIProvider::SendShopSellRequest"))
+                if (line.Contains("CEntityComponentShopUIProvider::SendShopBuyRequest")
+                    || line.Contains("CEntityComponentShoppingProvider::SendStandardItemBuyRequest")
+                    || line.Contains("CEntityComponentShoppingProvider::SendRentalRequest")
+                    )
                 {
                     if (_settings.Output == "raw")
                     {
@@ -137,18 +193,54 @@ public class LogParserCommand : Command<LogParserCommand.Settings>
                     }
                     else
                     {
-                        _lines.Add(line);
+                        if (_lines.IndexOf(line) == -1)
+                        {
+                            _lines.Add(line);
+                        }
                     }
                 }
             }
         }
     }
 
+    private void Watch()
+    {
+        _gameDirectory = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries\\StarCitizen\\LIVE\\");
+        _gameLogFileName = "Game.log";
+        _gameLogFullPath = Path.Join(_gameDirectory, _gameLogFileName);
+        // Create a new FileSystemWatcher and set its properties.
+        FileSystemWatcher watcher = new FileSystemWatcher
+        {
+            Path = _gameDirectory,
+            /* Watch for changes in LastAccess and LastWrite times, and 
+               the renaming of files or directories. */
+            NotifyFilter = NotifyFilters.Size,
+            // Only watch text files.
+            Filter = _gameLogFileName
+        };
+
+        // Add event handlers.
+        watcher.Changed += new FileSystemEventHandler(OnChanged);
+        watcher.Changed += new FileSystemEventHandler(OnChanged);
+
+        // Begin watching.
+        watcher.EnableRaisingEvents = true;
+
+        new AutoResetEvent(false).WaitOne();
+    }
+
+    private void OnChanged(object source, FileSystemEventArgs e)
+    {
+        ExtractFile(e.FullPath);
+    }
+
     public class Settings : CommandSettings
     {
-        [CommandOption("-d|--directory")]
-        public required string Directory { get; set; } = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries/StarCitizen/LIVE/logbackups");
+        [CommandOption("-p|--path")]
+        public required string Path { get; set; } = System.IO.Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Roberts Space Industries/StarCitizen/LIVE/logbackups");
         [CommandOption("-o|--output")]
         public required string Output { get; set; } = "console";
+        [CommandOption("-w|--watch")]
+        public required bool Watch { get; set; }
     }
 }
